@@ -31,4 +31,15 @@ public class FakeStoreProductDTO {
 
         return  product;
     }
+
+    public static FakeStoreProductDTO from(CreateProductRequestDTO request) {
+        FakeStoreProductDTO dto = new FakeStoreProductDTO();
+        dto.setTitle(request.getTitle());
+        dto.setDescription(request.getDescription());
+        dto.setCategory(request.getCategory());
+        dto.setPrice(String.valueOf(request.getPrice()));
+        dto.setImage(request.getImageUrl());
+
+        return dto;
+    }
 }

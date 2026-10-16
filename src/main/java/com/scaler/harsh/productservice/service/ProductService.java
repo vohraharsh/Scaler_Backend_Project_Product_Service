@@ -1,5 +1,6 @@
 package com.scaler.harsh.productservice.service;
 
+import com.scaler.harsh.productservice.dto.CreateProductRequestDTO;
 import com.scaler.harsh.productservice.model.Product;
 
 import java.util.List;
@@ -12,7 +13,11 @@ public interface ProductService {
 
     public Product getProductById(Long id);
 
-    public void createProduct();
+    public Product createProduct(CreateProductRequestDTO request);
 
     public List<Product> getAllProducts();
+
+    public Product updateProduct(Long id, CreateProductRequestDTO request);
+
+    public void deleteProduct(Long id);
 }

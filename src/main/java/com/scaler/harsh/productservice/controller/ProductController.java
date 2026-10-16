@@ -1,5 +1,6 @@
 package com.scaler.harsh.productservice.controller;
 
+import com.scaler.harsh.productservice.dto.CreateProductRequestDTO;
 import com.scaler.harsh.productservice.dto.ProductResponseDTO;
 import com.scaler.harsh.productservice.model.Product;
 import com.scaler.harsh.productservice.service.ProductService;
@@ -17,8 +18,11 @@ public class ProductController {
         this.svc = svc;
     }
 
-    @PostMapping("/product")
-    public void createProduct(){
+    @PostMapping("/products")
+    public ProductResponseDTO createProduct(@RequestBody CreateProductRequestDTO request) {
+
+        Product product = svc.createProduct(request);
+        return convertToProductResponseDTO(product);
 
     }
 
@@ -35,7 +39,7 @@ public class ProductController {
         return response;
     }
 
-    @GetMapping("/product/{id}")
+    @GetMapping("/products/{id}")
     public ProductResponseDTO getProductById(@PathVariable ("id") Long id){
 
         //Validation = If id = null, throw exception
@@ -64,9 +68,17 @@ public class ProductController {
         return dto;
     }
 
-    @DeleteMapping("/product/{id}")
+    @DeleteMapping("/products/{id}")
     public void deleteProduct(@PathVariable ("id") Long id){
 
+        svc.deleteProduct(id);
+    }
+
+    @PutMapping("/products/{id}")
+    public ProductResponseDTO updateProduct(@PathVariable ("id") Long id,
+                                            @RequestBody CreateProductRequestDTO request) {
+        Product product = svc.updateProduct(id, request);
+        return convertToProductResponseDTO(product);
     }
 
 }

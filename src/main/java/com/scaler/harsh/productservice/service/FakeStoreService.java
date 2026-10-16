@@ -1,7 +1,10 @@
 package com.scaler.harsh.productservice.service;
 
+import com.scaler.harsh.productservice.dto.CreateProductRequestDTO;
 import com.scaler.harsh.productservice.dto.FakeStoreProductDTO;
 import com.scaler.harsh.productservice.model.Product;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -39,8 +42,13 @@ public class FakeStoreService implements ProductService {
     }
 
     @Override
-    public void createProduct() {
+    public Product createProduct(CreateProductRequestDTO request) {
+        FakeStoreProductDTO requestDTO = FakeStoreProductDTO.from(request);
 
+        FakeStoreProductDTO responseDTO = restTemplate.postForObject(
+                "https://fakestoreapi.com/products", requestDTO, FakeStoreProductDTO.class
+        );
+        return responseDTO.toProduct(responseDTO);
     }
 
     @Override
@@ -66,5 +74,30 @@ public class FakeStoreService implements ProductService {
         }
 
         return products;
+    }
+
+    @Override
+    public Product updateProduct(Long id, CreateProductRequestDTO request) {
+
+        FakeStoreProductDTO requestDTO = FakeStoreProductDTO.from(request);
+
+        HttpEntity<FakeStoreProductDTO> requestEntity = new HttpEntity<>(requestDTO);
+
+        ResponseEntity<FakeStoreProductDTO> response = restTemplate.exchange(
+                "https://fakestoreapi.com/products/" + id,
+                HttpMethod.PUT,
+                requestEntity,
+                FakeStoreProductDTO.class
+        );
+
+        FakeStoreProductDTO responseDto = response.getBody();
+
+        return responseDto.toProduct(responseDto);
+    }
+
+    @Override
+    public void deleteProduct(Long id) {
+
+        restTemplate.delete("https://fakestoreapi.com/products/" + id);
     }
 }
