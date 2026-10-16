@@ -19,5 +19,5 @@ public interface ProductService {
 
     public Product updateProduct(Long id, CreateProductRequestDTO request);
 
-    public void deleteProduct(Long id);
+    public Product deleteProduct(Long id);
 }

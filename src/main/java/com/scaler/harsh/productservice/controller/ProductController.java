@@ -2,9 +2,12 @@ package com.scaler.harsh.productservice.controller;
 
 import com.scaler.harsh.productservice.dto.CreateProductRequestDTO;
 import com.scaler.harsh.productservice.dto.ProductResponseDTO;
+import com.scaler.harsh.productservice.exceptions.ProductServiceException;
 import com.scaler.harsh.productservice.model.Product;
 import com.scaler.harsh.productservice.service.ProductService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +22,27 @@ public class ProductController {
     }
 
     @PostMapping("/products")
-    public ProductResponseDTO createProduct(@RequestBody CreateProductRequestDTO request) {
+    public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody CreateProductRequestDTO request) {
+
+        if(request.getTitle() == null || request.getTitle().isBlank()){
+            throw new ProductServiceException("Title cannot be empty",
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if(request.getCategory() == null || request.getCategory().isBlank()){
+            throw new ProductServiceException("Category cannot be empty",
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if(request.getPrice() <= 0){
+            throw new ProductServiceException("Price must be positive",
+                    HttpStatus.BAD_REQUEST);
+        }
 
         Product product = svc.createProduct(request);
-        return convertToProductResponseDTO(product);
+        ProductResponseDTO response = convertToProductResponseDTO(product);
 
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/products")
@@ -42,6 +61,11 @@ public class ProductController {
     @GetMapping("/products/{id}")
     public ProductResponseDTO getProductById(@PathVariable ("id") Long id){
 
+        if(id <= 0){
+            throw new ProductServiceException("Invalid Product ID",
+                    HttpStatus.BAD_REQUEST);
+        }
+
         //Validation = If id = null, throw exception
         //Call service layer
         //model to DTO conversion in controller
@@ -49,12 +73,6 @@ public class ProductController {
         Product product = svc.getProductById(id);
         ProductResponseDTO response = convertToProductResponseDTO(product);
         return response;
-    }
-
-    private void validationParam(Long id){
-        if (id == null){
-            System.out.println("Product id is null");
-        }
     }
 
     private ProductResponseDTO convertToProductResponseDTO(Product product) {
@@ -69,14 +87,42 @@ public class ProductController {
     }
 
     @DeleteMapping("/products/{id}")
-    public void deleteProduct(@PathVariable ("id") Long id){
+    public String deleteProduct(@PathVariable ("id") Long id){
+
+        if(id <= 0){
+            throw new ProductServiceException("Invalid Product ID",
+                    HttpStatus.BAD_REQUEST);
+        }
 
         svc.deleteProduct(id);
+        return "Product with id " + id + " deleted successfully";
     }
 
     @PutMapping("/products/{id}")
     public ProductResponseDTO updateProduct(@PathVariable ("id") Long id,
                                             @RequestBody CreateProductRequestDTO request) {
+
+        if(id <= 0){
+            throw new ProductServiceException("Invalid Product ID",
+                    HttpStatus.BAD_REQUEST);
+        }
+
+
+        if(request.getTitle() == null || request.getTitle().isBlank()){
+            throw new ProductServiceException("Title cannot be empty",
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if(request.getCategory() == null || request.getCategory().isBlank()){
+            throw new ProductServiceException("Category cannot be empty",
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if(request.getPrice() <= 0){
+            throw new ProductServiceException("Price must be positive",
+                    HttpStatus.BAD_REQUEST);
+        }
+
         Product product = svc.updateProduct(id, request);
         return convertToProductResponseDTO(product);
     }

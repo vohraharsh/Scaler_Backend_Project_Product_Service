@@ -2,11 +2,14 @@ package com.scaler.harsh.productservice.service;
 
 import com.scaler.harsh.productservice.dto.CreateProductRequestDTO;
 import com.scaler.harsh.productservice.dto.FakeStoreProductDTO;
+import com.scaler.harsh.productservice.exceptions.ProductServiceException;
 import com.scaler.harsh.productservice.model.Product;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -22,18 +25,24 @@ public class FakeStoreService implements ProductService {
 
     @Override
     public Product getProductById(Long id) {
-        //Call to fakestore api
+        //Call to FakeStore API
         //get the response
         //Map the response to our model
         //return the model to service layer
 
-        ResponseEntity<FakeStoreProductDTO> response =
-                restTemplate.getForEntity
-                        ("https://fakestoreapi.com/products/" + id, FakeStoreProductDTO.class,id);
+        ResponseEntity<FakeStoreProductDTO> response;
 
-        if(response.getBody() == null){
-            //Throw Exception
-            System.out.println("Product Body is null");
+        try {
+            response = restTemplate.getForEntity(
+                    "https://fakestoreapi.com/products/" + id,FakeStoreProductDTO.class, id);
+        } catch (RestClientException e) {
+            throw new ProductServiceException("Could not reach FakeStoreAPI",
+                    HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
+        if(response.getBody() == null) {
+            throw new ProductServiceException("Product not found for id: " + id,
+                    HttpStatus.NOT_FOUND);
         }
 
         FakeStoreProductDTO fakeStoreProductDTO = response.getBody();
@@ -45,24 +54,43 @@ public class FakeStoreService implements ProductService {
     public Product createProduct(CreateProductRequestDTO request) {
         FakeStoreProductDTO requestDTO = FakeStoreProductDTO.from(request);
 
-        FakeStoreProductDTO responseDTO = restTemplate.postForObject(
-                "https://fakestoreapi.com/products", requestDTO, FakeStoreProductDTO.class
-        );
+        FakeStoreProductDTO responseDTO;
+
+        try {
+            responseDTO = restTemplate.postForObject(
+                    "https://fakestoreapi.com/products", requestDTO, FakeStoreProductDTO.class);
+        }  catch (RestClientException e) {
+            throw new ProductServiceException("Could not reach FakeStoreAPI"
+            ,HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
+
+        if(responseDTO == null){
+            throw new ProductServiceException("Product Creation Failed",
+                    HttpStatus.BAD_REQUEST);
+        }
+
         return responseDTO.toProduct(responseDTO);
     }
 
     @Override
     public List<Product> getAllProducts() {
 
-        ResponseEntity<FakeStoreProductDTO[]> response =
-                restTemplate.getForEntity(
-                        "https://fakestoreapi.com/products",
-                        FakeStoreProductDTO[].class
-                );
+        ResponseEntity<FakeStoreProductDTO[]> response;
+
+        try{
+            response = restTemplate.getForEntity(
+                    "https://fakestoreapi.com/products",
+                    FakeStoreProductDTO[].class
+            );
+        } catch (RestClientException e) {
+            throw new ProductServiceException("Could not reach FakeStoreAPI",
+                    HttpStatus.SERVICE_UNAVAILABLE);
+        }
 
         if(response.getBody() == null){
-            //Throw Exception
-            System.out.println("Product list is null");
+            throw new ProductServiceException("Product List Not Found",
+                    HttpStatus.NOT_FOUND);
         }
 
         FakeStoreProductDTO[] fakeStoreProductDTO = response.getBody();
@@ -83,21 +111,48 @@ public class FakeStoreService implements ProductService {
 
         HttpEntity<FakeStoreProductDTO> requestEntity = new HttpEntity<>(requestDTO);
 
-        ResponseEntity<FakeStoreProductDTO> response = restTemplate.exchange(
+        ResponseEntity<FakeStoreProductDTO> response;
+
+        try {
+        response = restTemplate.exchange(
                 "https://fakestoreapi.com/products/" + id,
                 HttpMethod.PUT,
                 requestEntity,
                 FakeStoreProductDTO.class
-        );
+        ); } catch (RestClientException e) {
+            throw new ProductServiceException("Could not reach FakeStoreAPI",
+                    HttpStatus.SERVICE_UNAVAILABLE);
+        }
 
         FakeStoreProductDTO responseDto = response.getBody();
+
+        if(responseDto == null){
+            throw new ProductServiceException("Product not found for id: " + id,
+                    HttpStatus.NOT_FOUND);
+        }
 
         return responseDto.toProduct(responseDto);
     }
 
     @Override
-    public void deleteProduct(Long id) {
+    public Product deleteProduct(Long id) {
 
-        restTemplate.delete("https://fakestoreapi.com/products/" + id);
+        ResponseEntity<FakeStoreProductDTO> response;
+
+        try {
+            response = restTemplate.exchange("https://fakestoreapi.com/products/" + id,
+                    HttpMethod.DELETE, null, FakeStoreProductDTO.class);
+        } catch (RestClientException e) {
+            throw new ProductServiceException("Could not reach FakeStoreAPI",
+                    HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
+        FakeStoreProductDTO responseDto = response.getBody();
+
+        if(responseDto == null){
+            throw new ProductServiceException("Product not found for id: " + id,
+                    HttpStatus.NOT_FOUND);
+        }
+        return responseDto.toProduct(responseDto);
     }
 }
