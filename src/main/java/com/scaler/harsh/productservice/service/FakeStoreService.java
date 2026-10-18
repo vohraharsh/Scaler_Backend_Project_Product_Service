@@ -34,6 +34,8 @@ public class FakeStoreService implements ProductService {
         //Map the response to our model
         //return the model to service layer
 
+        //throw new RuntimeException("FORCED - should never reach here if cached");
+
         ResponseEntity<FakeStoreProductDTO> response;
 
         try {
@@ -52,6 +54,7 @@ public class FakeStoreService implements ProductService {
         FakeStoreProductDTO fakeStoreProductDTO = response.getBody();
 
         return fakeStoreProductDTO.toProduct(fakeStoreProductDTO);
+
     }
 
     @Override
