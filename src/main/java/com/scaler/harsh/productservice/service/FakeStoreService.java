@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +27,7 @@ public class FakeStoreService implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "products", key = "#id")
     public Product getProductById(Long id) {
         //Call to FakeStore API
         //get the response
@@ -105,6 +109,7 @@ public class FakeStoreService implements ProductService {
     }
 
     @Override
+    @CachePut(value = "products", key = "#id")
     public Product updateProduct(Long id, CreateProductRequestDTO request) {
 
         FakeStoreProductDTO requestDTO = FakeStoreProductDTO.from(request);
@@ -135,6 +140,7 @@ public class FakeStoreService implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", key = "#id")
     public Product deleteProduct(Long id) {
 
         ResponseEntity<FakeStoreProductDTO> response;
