@@ -8,6 +8,7 @@ import com.scaler.harsh.productservice.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import com.scaler.harsh.productservice.model.Category;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +126,26 @@ public class ProductController {
 
         Product product = svc.updateProduct(id, request);
         return convertToProductResponseDTO(product);
+    }
+
+    @GetMapping("/products/search")
+    public List<ProductResponseDTO> searchProducts(@RequestParam("keyword") String keyword) {
+        List<com.scaler.harsh.productservice.model.ProductDocument> results = svc.searchProducts(keyword);
+        List<ProductResponseDTO> response = new ArrayList<>();
+        for (com.scaler.harsh.productservice.model.ProductDocument doc : results) {
+            ProductResponseDTO dto = new ProductResponseDTO();
+            dto.setId(doc.getId());
+            dto.setTitle(doc.getTitle());
+            dto.setDescription(doc.getDescription());
+            dto.setPrice(doc.getPrice());
+            dto.setImageURL(doc.getImageURL());
+            response.add(dto);
+
+            Category category = new Category();
+            category.setTitle(doc.getCategory());
+            dto.setCategory(category);
+        }
+        return response;
     }
 
 }

@@ -4,8 +4,10 @@ import com.scaler.harsh.productservice.dto.CreateProductRequestDTO;
 import com.scaler.harsh.productservice.exceptions.ProductServiceException;
 import com.scaler.harsh.productservice.model.Category;
 import com.scaler.harsh.productservice.model.Product;
+import com.scaler.harsh.productservice.model.ProductDocument;
 import com.scaler.harsh.productservice.repository.CategoryRepository;
 import com.scaler.harsh.productservice.repository.ProductRepository;
+import com.scaler.harsh.productservice.repository.ProductSearchRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,10 +24,12 @@ public class SelfProductService implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductSearchRepository productSearchRepository;
 
-    public SelfProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public SelfProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductSearchRepository productSearchRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.productSearchRepository = productSearchRepository;
     }
 
     @Override
@@ -54,7 +58,9 @@ public class SelfProductService implements ProductService {
         product.setImageURL(request.getImageUrl());
         product.setCategory(category);
 
-        return productRepository.save(product);
+        product = productRepository.save(product);
+        syncToElasticsearch(product);
+        return product;
     }
 
     @Override
@@ -84,7 +90,9 @@ public class SelfProductService implements ProductService {
         product.setImageURL(request.getImageUrl());
         product.setCategory(category);
 
-        return productRepository.save(product);
+        product = productRepository.save(product);
+        syncToElasticsearch(product);
+        return product;
     }
 
     @Override
@@ -96,6 +104,23 @@ public class SelfProductService implements ProductService {
         }
         Product product = existing.get();
         productRepository.deleteById(id);
+        productSearchRepository.deleteById(id);
         return product;
+    }
+
+    @Override
+    public List<ProductDocument> searchProducts(String keyword) {
+        return productSearchRepository.findByTitleContainingOrDescriptionContaining(keyword, keyword);
+    }
+
+    private void syncToElasticsearch(Product product) {
+        ProductDocument doc = new ProductDocument();
+        doc.setId(product.getId());
+        doc.setTitle(product.getTitle());
+        doc.setDescription(product.getDescription());
+        doc.setPrice(product.getPrice());
+        doc.setCategory(product.getCategory().getTitle());
+        doc.setImageURL(product.getImageURL());
+        productSearchRepository.save(doc);
     }
 }

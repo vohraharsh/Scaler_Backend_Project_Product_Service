@@ -164,4 +164,9 @@ public class FakeStoreService implements ProductService {
         }
         return responseDto.toProduct(responseDto);
     }
+
+    @Override
+    public List<com.scaler.harsh.productservice.model.ProductDocument> searchProducts(String keyword) {
+        throw new UnsupportedOperationException("Not supported by FakeStoreService");
+    }
 }
