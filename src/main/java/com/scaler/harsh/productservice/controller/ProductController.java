@@ -148,4 +148,13 @@ public class ProductController {
         return response;
     }
 
+    @GetMapping("/products/category/{categoryTitle}")
+    public List<ProductResponseDTO> getProductsByCategory(@PathVariable("categoryTitle") String categoryTitle) {
+        List<Product> products = svc.getProductsByCategory(categoryTitle);
+        List<ProductResponseDTO> response = new ArrayList<>();
+        for (Product product : products) {
+            response.add(convertToProductResponseDTO(product));
+        }
+        return response;
+    }
 }

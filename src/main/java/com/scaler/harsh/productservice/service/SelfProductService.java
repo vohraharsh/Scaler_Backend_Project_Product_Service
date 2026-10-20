@@ -123,4 +123,9 @@ public class SelfProductService implements ProductService {
         doc.setImageURL(product.getImageURL());
         productSearchRepository.save(doc);
     }
+
+    @Override
+    public List<Product> getProductsByCategory(String categoryTitle) {
+        return productRepository.findByCategoryTitle(categoryTitle);
+    }
 }

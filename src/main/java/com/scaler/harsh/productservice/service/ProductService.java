@@ -23,4 +23,6 @@ public interface ProductService {
     public Product updateProduct(Long id, CreateProductRequestDTO request);
 
     public Product deleteProduct(Long id);
+
+    List<Product> getProductsByCategory(String categoryTitle);
 }
